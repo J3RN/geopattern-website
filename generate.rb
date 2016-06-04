@@ -1,21 +1,20 @@
-#!/usr/bin/env ruby
-
+require 'sinatra'
 require 'geo_pattern'
 
-if ARGV.count == 0
-  puts "What string would you like to patternify?"
-  seed = gets.chomp
-else
-  seed = ARGV[0]
+get '/' do
+  erb :index
 end
 
-file_name = "#{seed}.svg"
-File.write("images/#{file_name}", GeoPattern.generate(seed))
-puts "SVG written to images/#{file_name}"
+post '/result' do
+  seed = params[:seed]
+  base = params[:base]
 
-png_name = "#{seed}.png"
+  pattern = GeoPattern.generate(seed, color: base)
 
-if system("convert images/#{file_name} images/#{png_name}")
-  puts "PNG written to images/#{png_name}"
-  `open images/#{png_name}`
+  path_to_svg = "/output/#{seed}.svg"
+  File.write("public/#{path_to_svg}", pattern.to_svg)
+
+  image = pattern.to_data_uri
+
+  erb :result, locals: { image: image, path_to_svg: path_to_svg }
 end
